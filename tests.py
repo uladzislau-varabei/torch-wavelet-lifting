@@ -135,6 +135,6 @@ if __name__ == '__main__':
     # wavelet_name = 'haar'
     # wavelet_name = 'cdf-5/3'
     normalize_input = True
-    plot_data = False
+    plot_data = True
     plot_hist = False
     test_scales(wavelet_name, normalize_input, plot_data, plot_hist)

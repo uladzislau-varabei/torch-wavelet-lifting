@@ -26,6 +26,7 @@ def prepare_input_image(path_idx=0):
 
     path_prefix = os.path.dirname(os.path.realpath(__file__))
     image_path = os.path.join(path_prefix, 'images', image_names[path_idx])
+    print(f'ULoading image: {image_path}...')
     image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
     image_size_yx = image.shape[:2]
     max_size = 512

@@ -40,7 +40,6 @@ COEFFS_SCALES_2D_v3 = np.array([
     1 / np.sqrt(2)
 ], dtype=np.float32)
 
-# 2d transform, so power 2
 COEFFS_SCALES_2D_v4 = np.array([
     1 / np.sqrt(2),
     1,
@@ -48,7 +47,6 @@ COEFFS_SCALES_2D_v4 = np.array([
     1
 ], dtype=np.float32)
 
-# 2d transform, so power 2
 COEFFS_SCALES_2D_v5 = np.array([
     1 / np.sqrt(2),
     1,
@@ -56,8 +54,7 @@ COEFFS_SCALES_2D_v5 = np.array([
     np.sqrt(2)
 ], dtype=np.float32)
 
-# Use best scale for LL (almost preserves abs_mean from source data),
-# all H details have very similar ranges
+# LL taken from v3, H coeffs from v5
 COEFFS_SCALES_2D_v6 = np.array([
     1 / np.sqrt(2) ** 2,
     1,
@@ -74,6 +71,8 @@ COEFFS_SCALES_2D_DICT = {
     6: COEFFS_SCALES_2D_v6
 }
 
+# 6 is the best for preserving source data range for LL and keeping similar ranges for all H details
+# Found with tests.py with and without normalization fro input
 COEFFS_SCALES_V = 6
 COEFFS_SCALES_2D = torch.from_numpy(COEFFS_SCALES_2D_DICT[COEFFS_SCALES_V])
 

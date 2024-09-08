@@ -49,13 +49,27 @@ The implementation in this repository is vectorized, that is, at the same time a
 so it's very fast. 
 
 
+## Normalization
+
+For 2d normalization the suggested coeffs are `[1 / sqrt(2) ** 2, 1, 1, sqrt(2)]`
+They are set as default values, see `COEFFS_SCALES_2D_v6`. 
+These values allow to preserve mean of abs values for LL coeffs and keep almost the same range for all H coeffs.
+<br> Below are the results for `CDF-9/7` and normalized image `castle1_grayscale.png` (Q - quantile):
+
+| Coeff            |  Min   |   Max |   Mean | Mean abs |   Q=10 |  Q=90 |
+|:-----------------|:------:|------:|-------:|---------:|-------:|------:|
+| Src (normalized) |  -1.0  | 0.984 | -0.001 |    0.576 | -0.804 | 0.867 |
+| LL               | -1.037 | 0.992 |  0.000 |    0.568 | -0.793 | 0.867 |
+| LH               | -0.998 | 1.107 | -0.001 |    0.056 | -0.083 | 0.082 |
+| HL               | -1.389 | 1.589 |  0.001 |    0.054 | -0.075 | 0.075 |
+| HH               | -1.011 | 0.899 |  0.000 |    0.040 | -0.062 | 0.061 |
+
 
 ## Additional tests 
 
 For clearer understanding of all the implemented wavelets it can be useful to see results on additional images. 
 Such results are presented in the `results` directory. 
 Original images for testing can be found in the `images` directory.
-
 
 
 ## Acknowledgements
