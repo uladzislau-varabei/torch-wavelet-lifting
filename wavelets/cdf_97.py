@@ -65,7 +65,8 @@ def fast_cdf97_1d_op(x, kernel, scale_coeffs, across_cols=False, across_rows=Fal
     # Normalization
     if scale_coeffs:
         x_ev_3 = k * x_ev_2 # s
-        x_od_3 = (k - 1.) * x_od_2 # d
+        # x_od_3 = (k - 1.) * x_od_2 # d
+        x_od_3 = (1. / k) * x_od_2 # d, use normalization consistent with other families
     else:
         x_ev_3, x_od_3 = x_ev_2, x_od_2 # s, d
     # Join coeffs
@@ -90,7 +91,8 @@ def fast_inv_cdf97_1d_op(x_coefs, kernel, scale_coeffs, across_cols=False, acros
             kernel[4], kernel[5], kernel[6], kernel[7], kernel[8]
     if scale_coeffs:
         x_ev_2 = (1. / k) * s
-        x_od_2 = (1. / (k - 1.)) * d
+        # x_od_2 = (1. / (k - 1.)) * d
+        x_od_2 = k * d # use normalization consistent with other families
     else:
         x_ev_2, x_od_2 = s, d
     x_ev_1 = x_ev_2 - (

@@ -1,6 +1,7 @@
 import copy
 
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn.functional as F
 
@@ -15,9 +16,67 @@ DEFAULT_DATA_FORMAT = NHWC_FORMAT # should now work faster
 
 PAD_MODE = 'constant'
 
-COEFFS_SCALES_2D = torch.from_numpy(
-    np.array([1 / np.sqrt(2), np.sqrt(2), np.sqrt(2), np.sqrt(2)], dtype=np.float32) ** 2
-) # 2d transform, so power 2
+# 2d transform, so power 2
+COEFFS_SCALES_2D_v1 = np.array([
+    1 / np.sqrt(2),
+    np.sqrt(2),
+    np.sqrt(2),
+    np.sqrt(2)
+], dtype=np.float32) ** 2
+
+# The same scales allows to get coeffs ranges that are consistent
+COEFFS_SCALES_2D_v2 = np.array([
+    1 / np.sqrt(2) ** 2,
+    1 / np.sqrt(2) ** 2,
+    1 / np.sqrt(2) ** 2,
+    1 / np.sqrt(2) ** 2
+], dtype=np.float32)
+
+# 2d transform, so use double power only for LL coeffs
+COEFFS_SCALES_2D_v3 = np.array([
+    1 / np.sqrt(2) ** 2,
+    1 / np.sqrt(2),
+    1 / np.sqrt(2),
+    1 / np.sqrt(2)
+], dtype=np.float32)
+
+# 2d transform, so power 2
+COEFFS_SCALES_2D_v4 = np.array([
+    1 / np.sqrt(2),
+    1,
+    1,
+    1
+], dtype=np.float32)
+
+# 2d transform, so power 2
+COEFFS_SCALES_2D_v5 = np.array([
+    1 / np.sqrt(2),
+    1,
+    1,
+    np.sqrt(2)
+], dtype=np.float32)
+
+# Use best scale for LL (almost preserves abs_mean from source data),
+# all H details have very similar ranges
+COEFFS_SCALES_2D_v6 = np.array([
+    1 / np.sqrt(2) ** 2,
+    1,
+    1,
+    np.sqrt(2)
+], dtype=np.float32)
+
+COEFFS_SCALES_2D_DICT = {
+    1: COEFFS_SCALES_2D_v1,
+    2: COEFFS_SCALES_2D_v2,
+    3: COEFFS_SCALES_2D_v3,
+    4: COEFFS_SCALES_2D_v4,
+    5: COEFFS_SCALES_2D_v5,
+    6: COEFFS_SCALES_2D_v6
+}
+
+COEFFS_SCALES_V = 6
+COEFFS_SCALES_2D = torch.from_numpy(COEFFS_SCALES_2D_DICT[COEFFS_SCALES_V])
+
 DEFAULT_SCALE_1D_COEFFS = True
 DEFAULT_SCALE_2d_COEFFS = True
 
@@ -31,6 +90,36 @@ def scale_into_range(x, target_range):
     x = (x - src_range[0]) * target_range_size / src_range_size + target_range[0]
     return x
 
+
+def eval_stats_dict(x, name):
+    if isinstance(x, torch.Tensor):
+        x_np = x.detach().cpu().numpy()
+    else:
+        x_np = x
+    round_digits = 3
+    return {
+        f'{name}_min': round(x_np.min(), round_digits),
+        f'{name}_max': round(x_np.max(), round_digits),
+        f'{name}_mean': round(x_np.mean(), round_digits),
+        f'{name}_abs_mean': round(np.abs(x_np).mean(), round_digits),
+        f'{name}_unit_energy': round(np.sqrt((x_np ** 2).sum()).mean(), round_digits)
+    }
+
+
+def eval_stats(x):
+    if isinstance(x, torch.Tensor):
+        x_np = x.detach().cpu().numpy()
+    else:
+        x_np = x
+    round_digits = 3
+    x_min = round(x_np.min(), round_digits)
+    x_max = round(x_np.max(), round_digits)
+    x_mean = round(x_np.mean(), round_digits)
+    x_abs_mean = round(np.abs(x_np).mean(), round_digits)
+    q_delta = 10
+    x_q1 = round(np.percentile(x_np, q=q_delta), round_digits)
+    x_q2 = round(np.percentile(x_np, q=100 - q_delta), round_digits)
+    return x_min, x_max, x_mean, x_abs_mean, x_q1, x_q2
 
 def test_lifting_scheme(image, kernel, forward_2d_op, backward_2d_op, scale_1d_coefs=True, scale_2d_coefs=True,
                         data_format=DEFAULT_DATA_FORMAT, print_logs=True):
@@ -64,6 +153,7 @@ def test_lifting_scheme(image, kernel, forward_2d_op, backward_2d_op, scale_1d_c
 
     anz_image_coeffs = extract_coeffs_from_channels(anz_image, data_format=data_format)
     scaled_anz_image_coeffs = []
+    scales = eval_stats_dict(input_image, 'src')  # add to this dict coeffs stats later
     coeffs_names = ['x_LL', 'x_LH', 'X_HL', 'X_HH']
     for idx, c in enumerate(anz_image_coeffs):
         if scale_2d_coefs:
@@ -75,6 +165,8 @@ def test_lifting_scheme(image, kernel, forward_2d_op, backward_2d_op, scale_1d_c
         if print_logs:
             print(f'{name}: src min = {c.min():.3f}, max = {c.max():.3f}, scaled min = {scaled_c.min():.3f}, scaled max = {scaled_c.max():.3f}')
         scaled_anz_image_coeffs.append(vis_c)
+        coeffs_scales = eval_stats_dict(c, name)
+        scales = {**scales, **coeffs_scales}
     vis_anz_image = merge_coeffs_into_spatial(scaled_anz_image_coeffs, data_format=data_format)
     vis_anz_image = vis_anz_image[0].detach().cpu().numpy()
     if data_format == NCHW_FORMAT:
@@ -82,7 +174,67 @@ def test_lifting_scheme(image, kernel, forward_2d_op, backward_2d_op, scale_1d_c
     vis_anz_image = (255 * vis_anz_image).astype(np.uint8)
     if print_logs:
         print(f'Analysis/synthesis error: {error}')
-    return vis_anz_image, error
+    return vis_anz_image, error, scales
+
+def test_lifting_scales(image, name, kernel, forward_2d_op, normalize_input=True, data_format=DEFAULT_DATA_FORMAT,
+                        plot_data=True, plot_hist=True):
+    import matplotlib.pyplot as plt
+
+    if data_format == NCHW_FORMAT:
+        image = np.transpose(image, (2, 0, 1))
+
+    input_image = image[None, ...].astype(np.float32)
+    if normalize_input:
+        input_image = (input_image / 127.5) - 1.0
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    input_image = torch.from_numpy(input_image).to(device)
+
+    stats = {}
+    for scales_v in sorted(list(COEFFS_SCALES_2D_DICT.keys())):
+        coeffs_scales_2d = torch.from_numpy(COEFFS_SCALES_2D_DICT[scales_v])
+        anz_image = forward_2d_op(input_image, kernel,
+                                  scale_1d_coeffs=True,
+                                  scale_2d_coeffs=True,
+                                  coeffs_scales_2d=coeffs_scales_2d,
+                                  data_format=data_format)
+        anz_image_coeffs = extract_coeffs_from_channels(anz_image, data_format=data_format)
+        coeffs_names = ['x_LL', 'x_LH', 'X_HL', 'X_HH']
+        if plot_data:
+            fig, ax = plt.subplots(nrows=5, ncols=1)
+            fig.suptitle(f'Scales_2d v={scales_v}, {name}')
+        data = input_image.detach().cpu().numpy().flatten()
+        label = 'Src image'
+        if plot_data:
+            if plot_hist:
+                q_delta = 15
+                range_min = np.percentile(data, q=q_delta)
+                range_max = np.percentile(data, q=100 - q_delta)
+                ax[0].hist(data, bins=100, range=(range_min, range_max), density=True, label=label)
+            else:
+                ax[0].plot(data, label=label)
+            ax[0].legend()
+        scale_stats = []
+        scale_stats.append(eval_stats(data))
+        for idx, c in enumerate(anz_image_coeffs, 1):
+            data = c.detach().cpu().numpy().flatten()
+            scale_stats.append(eval_stats(data))
+            label = coeffs_names[idx - 1]
+            if plot_data:
+                if plot_hist:
+                    ax[idx].hist(data, bins=100, density=True, label=label)
+                else:
+                    ax[idx].plot(data, label=label)
+                ax[idx].legend()
+        df_columns = ['min', 'max', 'mean', 'abs_mean', 'q1', 'q2']
+        stats[scales_v] = pd.DataFrame(scale_stats, columns=df_columns, index=['src'] + coeffs_names)
+
+    print('Stats:')
+    for k in sorted(list(stats.keys())):
+        df = stats[k]
+        print(f'v={k}:\n{df}')
+    if plot_data:
+        plt.show()
 
 
 # ----- Merging/splitting coeffs -----
