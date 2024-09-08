@@ -56,13 +56,23 @@ They are set as default values, see `COEFFS_SCALES_2D_v6`.
 These values allow to preserve mean of abs values for LL coeffs and keep almost the same range for all H coeffs.
 <br> Below are the results for `CDF-9/7` and normalized image `castle1_grayscale.png` (Q - quantile):
 
-| Coeff            |  Min   |   Max |   Mean | Mean abs |   Q=10 |  Q=90 |
-|:-----------------|:------:|------:|-------:|---------:|-------:|------:|
-| Src (normalized) |  -1.0  | 0.984 | -0.001 |    0.576 | -0.804 | 0.867 |
-| LL               | -1.037 | 0.992 |  0.000 |    0.568 | -0.793 | 0.867 |
-| LH               | -0.998 | 1.107 | -0.001 |    0.056 | -0.083 | 0.082 |
-| HL               | -1.389 | 1.589 |  0.001 |    0.054 | -0.075 | 0.075 |
-| HH               | -1.011 | 0.899 |  0.000 |    0.040 | -0.062 | 0.061 |
+| Coeff |  Min   |   Max |   Mean | Mean abs |   Q=10 |  Q=90 |
+|:------|:------:|------:|-------:|---------:|-------:|------:|
+| Input |  -1.0  | 0.984 | -0.001 |    0.576 | -0.804 | 0.867 |
+| LL    | -1.037 | 0.992 |  0.000 |    0.568 | -0.793 | 0.867 |
+| LH    | -0.998 | 1.107 | -0.001 |    0.056 | -0.083 | 0.082 |
+| HL    | -1.389 | 1.589 |  0.001 |    0.054 | -0.075 | 0.075 |
+| HH    | -1.011 | 0.899 |  0.000 |    0.040 | -0.062 | 0.061 |
+
+<br> And here are the results for `CDF-9/7` and unnormalized image `castle1_grayscale.png` (Q - quantile):
+
+| Coeff |   Min   |    Max |   Mean | Mean abs |    Q=10 |    Q=90 |
+|:------|:-------:|-------:|-------:|---------:|--------:|--------:|
+| Input |   0.0   |  253.0 | 127.37 |  127.367 |    25.0 |   238.0 |
+| LL    |  -2.16  | 253.94 | 127.36 |  127.356 |  26.295 | 238.047 |
+| LH    | -127.19 | 141.21 |  0.004 |    7.074 | -10.399 |  10.503 |
+| HL    | -177.07 | 202.58 |  0.229 |    6.937 |  -9.545 |   9.565 |
+| HH    | -128.92 | 114.56 | -0.026 |    5.042 |  -7.901 |   7.834 |
 
 
 ## Additional tests 
