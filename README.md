@@ -64,7 +64,7 @@ These values allow to preserve mean of abs values for LL coeffs and keep almost 
 | HL    | -1.389 | 1.589 |  0.001 |    0.054 | -0.075 | 0.075 |
 | HH    | -1.011 | 0.899 |  0.000 |    0.040 | -0.062 | 0.061 |
 
-<br> And here are the results for `CDF-9/7` and unnormalized image `castle1_grayscale.png` (Q - quantile):
+And here are the results for `CDF-9/7` and unnormalized image `castle1_grayscale.png` (Q - quantile):
 
 | Coeff |   Min   |    Max |   Mean | Mean abs |    Q=10 |    Q=90 |
 |:------|:-------:|-------:|-------:|---------:|--------:|--------:|
