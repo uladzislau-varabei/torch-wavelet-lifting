@@ -63,21 +63,13 @@ def get_default_coeffs_scales_2d(COEFFS_SCALES_V):
         np.sqrt(2)
     ], dtype=np.float32)
 
-    # Haar stats on FFHQ 1024x1024 (1e-5) 10k: [0.5, 18, 17, 37]
-    HAAR_FFHQ = np.array([0.5, 16, 16, 36], dtype=np.float32)
-    HAAR_FFHQ_v2 = np.array([0.5, 8, 8, 16], dtype=np.float32)
-    HAAR_FFHQ_v3 = np.array([0.5, 4, 4, 8], dtype=np.float32)
-
     COEFFS_SCALES_2D_DICT = {
         1: COEFFS_SCALES_2D_v1,
         2: COEFFS_SCALES_2D_v2,
         3: COEFFS_SCALES_2D_v3,
         4: COEFFS_SCALES_2D_v4,
         5: COEFFS_SCALES_2D_v5,
-        6: COEFFS_SCALES_2D_v6,
-        'Haar_FFHQ': HAAR_FFHQ,
-        'Haar_FFHQ_v2': HAAR_FFHQ_v2,
-        'Haar_FFHQ_v3': HAAR_FFHQ_v3
+        6: COEFFS_SCALES_2D_v6
     }
 
     COEFFS_SCALES_2D = torch.from_numpy(COEFFS_SCALES_2D_DICT[COEFFS_SCALES_V])
