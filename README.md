@@ -1,6 +1,6 @@
 # Discrete wavelet transform (DWT) via lifting in PyTorch
 
-This repository provides implementation of discrete wavelet transform (DWT) vis lifting scheme in PyTorch.
+This repository provides implementation of discrete wavelet transform (DWT) via lifting scheme in PyTorch.
 Operations can run on both: CPU and GPU, filter coefficients can be made trainable parameters of model.
 The following wavelets are implemented (15 in total):
 1) CDF-9/7 (used in lossy compression in JPEG 2000)

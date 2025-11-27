@@ -175,6 +175,7 @@ def test_lifting_scheme(image, kernel, forward_2d_op, backward_2d_op, scale_1d_c
         print(f'Analysis/synthesis error: {error}')
     return vis_anz_image, error, scales
 
+
 def test_lifting_scales(image, name, kernel, forward_2d_op, normalize_input=True, data_format=DEFAULT_DATA_FORMAT,
                         plot_data=True, plot_hist=True):
     import matplotlib.pyplot as plt
