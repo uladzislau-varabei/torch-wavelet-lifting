@@ -4,13 +4,13 @@ import time
 import cv2
 import pandas as pd
 
-from wavelets.utils import COEFFS_SCALES_2D
+from wavelets.utils import COEFFS_SCALES_V, get_default_coeffs_scales_2d
 from wavelets.test_utils import test_lifting_scheme, test_lifting_scales
 from wavelets import WAVELETS_LIST
 from vis_utils import prepare_input_image, add_title_to_image, create_images_grid
 
 
-def test_wavelets(save_image):
+def test_wavelets(save_image, coeffs_scales_v):
     print('----- Testing wavelets -----')
     image_path_idx = 8
     image, image_path = prepare_input_image(path_idx=image_path_idx)
@@ -21,7 +21,8 @@ def test_wavelets(save_image):
     grid_title = 'Wavelets test'
     grid_path = os.path.join('results', f'wavelets_{image_name}.png')
     os.makedirs(os.path.dirname(grid_path), exist_ok=True)
-    stats_csv_path = os.path.join('stats', f'wavelets_stats_scales-{COEFFS_SCALES_2D}_{image_name}.csv')
+    scales_2d = get_default_coeffs_scales_2d(coeffs_scales_v)
+    stats_csv_path = os.path.join('stats', f'wavelets_stats_scales-v{coeffs_scales_v}_{image_name}.csv')
     os.makedirs(os.path.dirname(stats_csv_path), exist_ok=True)
     errors = {}
     scales_stats = {}
@@ -79,7 +80,8 @@ def test_scales(wavelet_name, normalize_input, plot_data, plot_hist):
 
 if __name__ == '__main__':
     save_image = False
-    test_wavelets(save_image)
+    coeffs_scales_v = COEFFS_SCALES_V
+    test_wavelets(save_image, coeffs_scales_v)
 
     wavelet_name = 'cdf-9/7'
     # wavelet_name = 'haar'
