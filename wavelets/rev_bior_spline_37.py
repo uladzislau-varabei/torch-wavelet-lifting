@@ -112,7 +112,6 @@ def fast_inv_revbiorspline37_1d_op(x_coefs, kernel, scale_coeffs, across_cols=Fa
     return x
 
 
-#@tf.function(jit_compile=True)
 def fast_revbiorspline37_2d_op(x, kernel, scale_1d_coeffs, scale_2d_coeffs, coeffs_scales_2d, data_format=DEFAULT_DATA_FORMAT):
     # 1. Apply across rows
     x = fast_revbiorspline37_1d_op(x, kernel, scale_coeffs=scale_1d_coeffs, across_cols=False, across_rows=True, data_format=data_format)
