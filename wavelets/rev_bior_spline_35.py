@@ -5,8 +5,8 @@ from wavelets.utils import NCHW_FORMAT, NHWC_FORMAT, DEFAULT_DATA_FORMAT, COEFFS
     extract_coeffs_from_channels, extract_coeffs_from_spatial, \
     merge_coeffs_into_channels, merge_coeffs_into_spatial, \
     pos_shift_4d, neg_shift_4d, \
-    join_coeffs_after_1d_op, join_coeffs_after_inv_1d_op, \
-    test_lifting_scheme
+    join_coeffs_after_1d_op, join_coeffs_after_inv_1d_op
+from wavelets.test_utils import test_lifting_scheme
 from vis_utils import prepare_input_image, show_lifting_results
 
 
@@ -143,10 +143,10 @@ if __name__ == '__main__':
     image, _ = prepare_input_image()
     data_format = NHWC_FORMAT
     #data_format = NCHW_FORMAT
-    vis_anz_image, error = test_lifting_scheme(image,
-                                               kernel=DEFAULT_KERNEL,
-                                               forward_2d_op=fast_revbiorspline35_2d_op,
-                                               backward_2d_op=fast_inv_revbiorspline35_2d_op,
-                                               data_format=data_format)
+    vis_anz_image, error, _ = test_lifting_scheme(image,
+                                                  kernel=DEFAULT_KERNEL,
+                                                  forward_2d_op=fast_revbiorspline35_2d_op,
+                                                  backward_2d_op=fast_inv_revbiorspline35_2d_op,
+                                                  data_format=data_format)
 
     show_lifting_results(src_image=image, anz_image=vis_anz_image, wavelet_name='Reverse Bior Spline 3/5')
