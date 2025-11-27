@@ -11,73 +11,91 @@ NHWC_FORMAT = 'NHWC'
 to_NHWC_axis = [0, 2, 3, 1] # NCHW -> NHWC
 to_NCHW_axis = [0, 3, 1, 2] # NHWC -> NCHW
 
-# DEFAULT_DATA_FORMAT = NCHW_FORMAT
-DEFAULT_DATA_FORMAT = NHWC_FORMAT # should now work faster
+# Note: in PyTorch NCHW and NHWC are the same as for indexes, only strides differ, so always use NCHW
+DEFAULT_DATA_FORMAT = NCHW_FORMAT # should now work faster
 
 PAD_MODE = 'constant'
 
-# 2d transform, so power 2
-COEFFS_SCALES_2D_v1 = np.array([
-    1 / np.sqrt(2),
-    np.sqrt(2),
-    np.sqrt(2),
-    np.sqrt(2)
-], dtype=np.float32) ** 2
+def get_default_coeffs_scales_2d(COEFFS_SCALES_V):
+    # 2d transform, so power 2
+    COEFFS_SCALES_2D_v1 = np.array([
+        1 / np.sqrt(2),
+        np.sqrt(2),
+        np.sqrt(2),
+        np.sqrt(2)
+    ], dtype=np.float32) ** 2
 
-# The same scales allows to get coeffs ranges that are consistent
-COEFFS_SCALES_2D_v2 = np.array([
-    1 / np.sqrt(2) ** 2,
-    1 / np.sqrt(2) ** 2,
-    1 / np.sqrt(2) ** 2,
-    1 / np.sqrt(2) ** 2
-], dtype=np.float32)
+    # The same scales allows to get coeffs ranges that are consistent
+    COEFFS_SCALES_2D_v2 = np.array([
+        1 / np.sqrt(2) ** 2,
+        1 / np.sqrt(2) ** 2,
+        1 / np.sqrt(2) ** 2,
+        1 / np.sqrt(2) ** 2
+    ], dtype=np.float32)
 
-# 2d transform, so use double power only for LL coeffs
-COEFFS_SCALES_2D_v3 = np.array([
-    1 / np.sqrt(2) ** 2,
-    1 / np.sqrt(2),
-    1 / np.sqrt(2),
-    1 / np.sqrt(2)
-], dtype=np.float32)
+    # 2d transform, so use double power only for LL coeffs
+    COEFFS_SCALES_2D_v3 = np.array([
+        1 / np.sqrt(2) ** 2,
+        1 / np.sqrt(2),
+        1 / np.sqrt(2),
+        1 / np.sqrt(2)
+    ], dtype=np.float32)
 
-COEFFS_SCALES_2D_v4 = np.array([
-    1 / np.sqrt(2),
-    1,
-    1,
-    1
-], dtype=np.float32)
+    COEFFS_SCALES_2D_v4 = np.array([
+        1 / np.sqrt(2),
+        1,
+        1,
+        1
+    ], dtype=np.float32)
 
-COEFFS_SCALES_2D_v5 = np.array([
-    1 / np.sqrt(2),
-    1,
-    1,
-    np.sqrt(2)
-], dtype=np.float32)
+    COEFFS_SCALES_2D_v5 = np.array([
+        1 / np.sqrt(2),
+        1,
+        1,
+        np.sqrt(2)
+    ], dtype=np.float32)
 
-# LL taken from v3, H coeffs from v5
-COEFFS_SCALES_2D_v6 = np.array([
-    1 / np.sqrt(2) ** 2,
-    1,
-    1,
-    np.sqrt(2)
-], dtype=np.float32)
+    # LL taken from v3, H coeffs from v5
+    COEFFS_SCALES_2D_v6 = np.array([
+        1 / np.sqrt(2) ** 2,
+        1,
+        1,
+        np.sqrt(2)
+    ], dtype=np.float32)
 
-COEFFS_SCALES_2D_DICT = {
-    1: COEFFS_SCALES_2D_v1,
-    2: COEFFS_SCALES_2D_v2,
-    3: COEFFS_SCALES_2D_v3,
-    4: COEFFS_SCALES_2D_v4,
-    5: COEFFS_SCALES_2D_v5,
-    6: COEFFS_SCALES_2D_v6
-}
+    # Haar stats on FFHQ 1024x1024 (1e-5) 10k: [0.5, 18, 17, 37]
+    HAAR_FFHQ = np.array([0.5, 16, 16, 36], dtype=np.float32)
+    HAAR_FFHQ_v2 = np.array([0.5, 8, 8, 16], dtype=np.float32)
+    HAAR_FFHQ_v3 = np.array([0.5, 4, 4, 8], dtype=np.float32)
+
+    COEFFS_SCALES_2D_DICT = {
+        1: COEFFS_SCALES_2D_v1,
+        2: COEFFS_SCALES_2D_v2,
+        3: COEFFS_SCALES_2D_v3,
+        4: COEFFS_SCALES_2D_v4,
+        5: COEFFS_SCALES_2D_v5,
+        6: COEFFS_SCALES_2D_v6,
+        'Haar_FFHQ': HAAR_FFHQ,
+        'Haar_FFHQ_v2': HAAR_FFHQ_v2,
+        'Haar_FFHQ_v3': HAAR_FFHQ_v3
+    }
+
+    COEFFS_SCALES_2D = torch.from_numpy(COEFFS_SCALES_2D_DICT[COEFFS_SCALES_V])
+    return COEFFS_SCALES_2D
 
 # 6 is the best for preserving source data range for LL and keeping similar ranges for all H details
-# Found with tests.py with and without normalization fro input
+# Found with tests.py with and without normalization for input
 COEFFS_SCALES_V = 6
-COEFFS_SCALES_2D = torch.from_numpy(COEFFS_SCALES_2D_DICT[COEFFS_SCALES_V])
+COEFFS_SCALES_2D = get_default_coeffs_scales_2d(COEFFS_SCALES_V)
 
 DEFAULT_SCALE_1D_COEFFS = True
-DEFAULT_SCALE_2d_COEFFS = True
+DEFAULT_SCALE_2D_COEFFS = True
+
+# Scales for LL, LH, HL, HH after DWT. Before IDWT inverse values must be used
+# Note: probably it's better to combine scaled init with these coeffs.
+# In this case coeffs can be scaled by corresponding values, e.g.,
+# layer_scales = [2, 16, 16, 24] and weight_init_scales = [1, 8, 8, 8]
+LAYER_COEFFS_SCALES = [2, 48, 48, 64]
 
 
 # ----- Utils -----
@@ -119,6 +137,7 @@ def eval_stats(x):
     x_q1 = round(np.percentile(x_np, q=q_delta), round_digits)
     x_q2 = round(np.percentile(x_np, q=100 - q_delta), round_digits)
     return x_min, x_max, x_mean, x_abs_mean, x_q1, x_q2
+
 
 def test_lifting_scheme(image, kernel, forward_2d_op, backward_2d_op, scale_1d_coefs=True, scale_2d_coefs=True,
                         data_format=DEFAULT_DATA_FORMAT, print_logs=True):
@@ -191,8 +210,10 @@ def test_lifting_scales(image, name, kernel, forward_2d_op, normalize_input=True
     input_image = torch.from_numpy(input_image).to(device)
 
     stats = {}
-    for scales_v in sorted(list(COEFFS_SCALES_2D_DICT.keys())):
-        coeffs_scales_2d = torch.from_numpy(COEFFS_SCALES_2D_DICT[scales_v])
+    #for scales_v in sorted(list(COEFFS_SCALES_2D_DICT.keys())):
+    for scales_v in [1, 2, 3, 4, 5, 6]:
+        # coeffs_scales_2d = torch.from_numpy(COEFFS_SCALES_2D_DICT[scales_v])
+        coeffs_scales_2d = torch.from_numpy(get_default_coeffs_scales_2d(scales_v))
         anz_image = forward_2d_op(input_image, kernel,
                                   scale_1d_coeffs=True,
                                   scale_2d_coeffs=True,
@@ -235,6 +256,150 @@ def test_lifting_scales(image, name, kernel, forward_2d_op, normalize_input=True
         print(f'v={k}:\n{df}')
     if plot_data:
         plt.show()
+
+
+def test_grad(image, kernel, forward_2d_op, backward_2d_op, scale_1d_coefs=True, scale_2d_coefs=True,
+              data_format=DEFAULT_DATA_FORMAT, print_logs=True):
+    if data_format == NCHW_FORMAT:
+        image = np.transpose(image, (2, 0, 1))
+
+    input_image = image[None, ...].astype(np.float32)
+    input_image = (input_image / 127.5) - 1.0
+    if print_logs:
+        print(f'Input image min: {input_image.min()}, max: {input_image.max()}')
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    src_image = (copy.deepcopy(input_image[0]) + 1) * 0.5 # scale to range [0, 1]
+    input_image = torch.from_numpy(input_image).to(device)
+    input_image = torch.nn.Parameter(input_image, requires_grad=True)
+    coeffs_scales_2d = COEFFS_SCALES_2D
+
+    anz_image = forward_2d_op(input_image, kernel,
+                              scale_1d_coeffs=scale_1d_coefs,
+                              scale_2d_coeffs=scale_2d_coefs,
+                              coeffs_scales_2d=coeffs_scales_2d,
+                              data_format=data_format)
+    if print_logs:
+        print(f'Input image shape: {input_image.shape}, anz image shape: {anz_image.shape}')
+    # Apply deepcopy as in-placed ops are used and the same tensor is used later
+    restored_image = backward_2d_op(anz_image, kernel,
+                                    scale_1d_coeffs=scale_1d_coefs,
+                                    scale_2d_coeffs=scale_2d_coefs,
+                                    coeffs_scales_2d=coeffs_scales_2d,
+                                    data_format=data_format)
+
+    grads = torch.autograd.grad(outputs=[restored_image.sum()], inputs=[input_image],
+        create_graph=True, only_inputs=True)[0]
+    grad_diff_image = np.abs(grads[0].detach().cpu().numpy() - 1)
+    print(f"Src: min={src_image.min()}, max={src_image.max()}, "
+          f"grads: min={grad_diff_image.min()}, max={grad_diff_image.max()}")
+
+    mean_grad_diff = grad_diff_image.mean()
+
+    vis_image = np.hstack([src_image, grad_diff_image])
+    return vis_image, mean_grad_diff
+
+
+def find_scales_per_image_batch(images, kernel, forward_2d_op, data_format):
+    def eval_base_stats(x, q, name):
+        thr = 1e-8
+        use_thr = True
+        if use_thr:
+            x_tensor = torch.abs(x.flatten())
+            src_size = x_tensor.numel()
+            x_tensor = x_tensor[x_tensor > thr]
+            upd_size = x_tensor.numel()
+            ratio = 100 * upd_size / src_size
+            print(f'thr={thr}: keeping {upd_size}/{src_size} ({ratio:.1f}%) items for {name}')
+        else:
+            x_tensor = x.flatten()
+        x_mean = x_tensor.mean().item()
+        x_med = torch.median(x_tensor).item()
+        assert 0 < q < 1
+        # q1 = torch.quantile(x.flatten(), q).item()
+        # q2 = torch.quantile(x.flatten(), 1 - q).item()
+        return x_mean, x_med #, q1, q2
+
+    def eval_params(src_stats, coeff_stats):
+        mean1, min1, max1 = src_stats
+        mean2, min2, max2 = coeff_stats
+        scale = abs(mean1 / mean2)
+        min2 = min2 * scale
+        max2 = max2 * scale
+        shift1 = min1 - min2
+        shift2 = max1 - max2
+        shift = (shift1 + shift2) / 2
+        return scale, shift
+
+    assert len(images.shape) == 4
+    if data_format == NCHW_FORMAT:
+        images = np.transpose(images, (0, 3, 1, 2))
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    input_images = torch.from_numpy(images).to(dtype=torch.float32, device=device)
+    input_images = input_images / 127.5 - 1.0
+
+    anz_images = forward_2d_op(input_images, kernel,
+                               scale_1d_coeffs=True,
+                               scale_2d_coeffs=False,
+                               coeffs_scales_2d=COEFFS_SCALES_2D,
+                               data_format=data_format)
+
+    anz_coeffs = extract_coeffs_from_channels(anz_images, data_format=data_format)
+    coeffs_names = ['x_LL', 'x_LH', 'x_HL', 'x_HH']
+
+    q = 0.1
+    src_stats = eval_base_stats(input_images, q, 'src')
+    result = {name: eval_base_stats(c, q, name) for name, c in zip(coeffs_names, anz_coeffs)}
+    result['src'] = src_stats
+    return result
+
+
+def find_scales(images, name, kernel, forward_2d_op, batch_size, data_format):
+    """
+    Approach description:
+    1) Assume signal description in neural networks is in range [-1, 1] with mean 0
+    2) If wavelets coeffs are of signal are predicted than initially each coeff also has range [-1, 1] with mean 0
+    3) After signal is constructed from wavelets coeffs some of them have much higher impact on overall result due to transform itself
+    Solution:
+    1) Scale and shift each predicted coeff of signal and after that apply inverse transform
+    2) What about forward transform?
+    """
+    from tqdm import tqdm
+    results = {'x_LL': [], 'x_LH': [], 'x_HL': [], 'x_HH': [], 'src': []}
+    batch_images = []
+    # TODO: add support for images of different sizes
+    for idx, image in tqdm(enumerate(images), total=len(images), desc=f'{name}_processing'):
+        if len(batch_images) < batch_size:
+            batch_images.append(image)
+        if len(batch_images) == batch_size or idx == (len(images) - 1):
+            batch_images = np.array(batch_images, dtype=np.uint8)
+            image_scales_dict = find_scales_per_image_batch(batch_images, kernel, forward_2d_op, data_format)
+            batch_images = []
+            for k, v in image_scales_dict.items():
+                results[k].append(v)
+
+    stats_names = ['scale', 'shift']
+    for idx in range(len(stats_names)):
+        # Only process scale for now
+        if idx == 0:
+            stat_name = stats_names[idx]
+            print(f'\n--- {name}_{stat_name} ---')
+            src_array = np.array(results['src'])
+            src_mean = src_array[:, idx].mean()
+            src_std = src_array[:, idx].std()
+            src_med = np.median(src_array[:, idx])
+            print(f'src: mean={src_mean:.3f}, std={src_std:.3f}, med={src_med:.3f}')
+            for k, v in results.items():
+                if 'src' not in k:
+                    v_array = np.array(v)[:, idx].flatten()
+                    v_mean = v_array.mean()
+                    v_std = v_array.std()
+                    v_med = np.median(v_array)
+                    scale_mean = src_mean / v_mean
+                    scale_med = src_med / v_med
+                    print(f'{k}: mean={v_mean:.3f}, std={v_std:.3f}, med={v_med:.3f}, '
+                          f'scale_mean={scale_mean:.3f}, scale_med={scale_med:.3f}')
 
 
 # ----- Merging/splitting coeffs -----
