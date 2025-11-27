@@ -4,65 +4,14 @@ import time
 import cv2
 import pandas as pd
 
-from wavelets.bior_spline_33 import (
-    fast_biorspline33_2d_op, fast_inv_biorspline33_2d_op, BIOR_SPLINE_33_KERNEL
-)
-from wavelets.bior_spline_35 import (
-    fast_biorspline35_2d_op, fast_inv_biorspline35_2d_op, BIOR_SPLINE_35_KERNEL
-)
-from wavelets.bior_spline_37 import (
-    fast_biorspline37_2d_op, fast_inv_biorspline37_2d_op, BIOR_SPLINE_37_KERNEL
-)
-from wavelets.bior_spline_39 import (
-    fast_biorspline39_2d_op, fast_inv_biorspline39_2d_op, BIOR_SPLINE_39_KERNEL
-)
-from wavelets.bior_spline_48 import (
-    fast_biorspline48_2d_op, fast_inv_biorspline48_2d_op, BIOR_SPLINE_48_KERNEL
-)
-from wavelets.rev_bior_spline_33 import (
-    fast_revbiorspline33_2d_op, fast_inv_revbiorspline33_2d_op, REV_BIOR_SPLINE_33_KERNEL
-)
-from wavelets.rev_bior_spline_35 import (
-    fast_revbiorspline35_2d_op, fast_inv_revbiorspline35_2d_op, REV_BIOR_SPLINE_35_KERNEL
-)
-from wavelets.rev_bior_spline_37 import (
-    fast_revbiorspline37_2d_op, fast_inv_revbiorspline37_2d_op, REV_BIOR_SPLINE_37_KERNEL
-)
-from wavelets.rev_bior_spline_39 import (
-    fast_revbiorspline39_2d_op, fast_inv_revbiorspline39_2d_op, REV_BIOR_SPLINE_39_KERNEL
-)
-from wavelets.rev_bior_spline_48 import (
-    fast_revbiorspline48_2d_op, fast_inv_revbiorspline48_2d_op, REV_BIOR_SPLINE_48_KERNEL
-)
-from wavelets.cdf_53 import fast_cdf53_2d_op, fast_inv_cdf53_2d_op, CDF_53_KERNEL
-from wavelets.cdf_97 import fast_cdf97_2d_op, fast_inv_cdf97_2d_op, CDF_97_KERNEL
-from wavelets.haar import fast_haar_2d_op, fast_inv_haar_2d_op, HAAR_KERNEL
-from wavelets.daub_4 import fast_daub4_2d_op, fast_inv_daub4_2d_op, DAUB4_KERNEL
-from wavelets.coif_12 import fast_coif12_2d_op, fast_inv_coif12_2d_op, COIF12_KERNEL
-from wavelets.utils import test_lifting_scheme, test_lifting_scales, COEFFS_SCALES_V
+from wavelets.utils import COEFFS_SCALES_2D
+from wavelets.test_utils import test_lifting_scheme, test_lifting_scales
+from wavelets import WAVELETS_LIST
 from vis_utils import prepare_input_image, add_title_to_image, create_images_grid
 
 
-WAVELETS_LIST = [
-    ['CDF-9/7', fast_cdf97_2d_op, fast_inv_cdf97_2d_op, CDF_97_KERNEL],
-    ['CDF-5/3', fast_cdf53_2d_op, fast_inv_cdf53_2d_op, CDF_53_KERNEL],
-    ['Haar', fast_haar_2d_op, fast_inv_haar_2d_op, HAAR_KERNEL],
-    ['Daubechies-4', fast_daub4_2d_op, fast_inv_daub4_2d_op, DAUB4_KERNEL],
-    ['Coiflet-12', fast_coif12_2d_op, fast_inv_coif12_2d_op, COIF12_KERNEL],
-    ['Bior_spline-3/3', fast_biorspline33_2d_op, fast_inv_biorspline33_2d_op, BIOR_SPLINE_33_KERNEL],
-    ['Bior_spline-3/5', fast_biorspline35_2d_op, fast_inv_biorspline35_2d_op, BIOR_SPLINE_35_KERNEL],
-    ['Bior_spline-3/7', fast_biorspline37_2d_op, fast_inv_biorspline37_2d_op, BIOR_SPLINE_37_KERNEL],
-    ['Bior_spline-3/9', fast_biorspline39_2d_op, fast_inv_biorspline39_2d_op, BIOR_SPLINE_39_KERNEL],
-    ['Bior_spline-4/8', fast_biorspline48_2d_op, fast_inv_biorspline48_2d_op, BIOR_SPLINE_48_KERNEL],
-    ['Rev_bior_spline-3/3', fast_revbiorspline33_2d_op, fast_inv_revbiorspline33_2d_op, REV_BIOR_SPLINE_33_KERNEL],
-    ['Rev_bior_spline-3/5', fast_revbiorspline35_2d_op, fast_inv_revbiorspline35_2d_op, REV_BIOR_SPLINE_35_KERNEL],
-    ['Rev_bior_spline-3/7', fast_revbiorspline37_2d_op, fast_inv_revbiorspline37_2d_op, REV_BIOR_SPLINE_37_KERNEL],
-    ['Rev_bior_spline-3/9', fast_revbiorspline39_2d_op, fast_inv_revbiorspline39_2d_op, REV_BIOR_SPLINE_39_KERNEL],
-    ['Rev_bior_spline-4/8', fast_revbiorspline48_2d_op, fast_inv_revbiorspline48_2d_op, REV_BIOR_SPLINE_48_KERNEL],
-]
-
-
 def test_wavelets(save_image):
+    print('----- Testing wavelets -----')
     image_path_idx = 8
     image, image_path = prepare_input_image(path_idx=image_path_idx)
     image_name = os.path.split(image_path)[1].rsplit('.', 1)[0]
@@ -72,7 +21,7 @@ def test_wavelets(save_image):
     grid_title = 'Wavelets test'
     grid_path = os.path.join('results', f'wavelets_{image_name}.png')
     os.makedirs(os.path.dirname(grid_path), exist_ok=True)
-    stats_csv_path = os.path.join('stats', f'wavelets_stats_scales-{COEFFS_SCALES_V}_{image_name}.csv')
+    stats_csv_path = os.path.join('stats', f'wavelets_stats_scales-{COEFFS_SCALES_2D}_{image_name}.csv')
     os.makedirs(os.path.dirname(stats_csv_path), exist_ok=True)
     errors = {}
     scales_stats = {}
@@ -100,17 +49,18 @@ def test_wavelets(save_image):
         print(f'Image is not saved')
     # Process errors stats
     print('Reconstruction errors:')
-    for idx, (k, v) in enumerate(errors.items()):
-        print(f'{idx + 1}) {k}: {v}')
+    for idx, (k, v) in enumerate(errors.items(), 1):
+        print(f'{str(idx):>2s}) {k:<21s}: {v}')
     # Process scales stats
     print('Scales stats:')
     scales_stats_df_info = []
-    for idx, (k, v) in enumerate(scales_stats.items()):
+    for idx, (k, v) in enumerate(scales_stats.items(), 1):
         scales_stats_df_info.append({'name': k, **v})
-        print(f'{idx + 1}) {k}: {v}')
+        print(f'{str(idx):>2s}) {k:<21s}: {v}')
     scales_stats_df = pd.DataFrame(scales_stats_df_info)
     scales_stats_df.to_csv(stats_csv_path, index=False, sep=';')
     print(f'Saved stats to: {stats_csv_path}')
+    print('----- Finished wavelets testing -----')
 
 
 def test_scales(wavelet_name, normalize_input, plot_data, plot_hist):
@@ -137,4 +87,4 @@ if __name__ == '__main__':
     normalize_input = True
     plot_data = True
     plot_hist = False
-    test_scales(wavelet_name, normalize_input, plot_data, plot_hist)
+    # test_scales(wavelet_name, normalize_input, plot_data, plot_hist)
