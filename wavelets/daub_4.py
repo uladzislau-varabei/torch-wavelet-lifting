@@ -34,6 +34,7 @@ def fast_daub4_1d_op(x, kernel, scale_coeffs, across_cols=False, across_rows=Fal
     # Split coeffs
     x_ev_0, x_od_0 = prepare_coeffs_for_1d_op(x, **common_kwargs)
     # o - odd, e - even
+    assert len(kernel) == 5, f'Daubechies-4 kernel must have 5 values, len(kernel)={len(kernel)}, kernel={kernel}'
     c1, c2, d1, d2, k = kernel[0], kernel[1], kernel[2], kernel[3], kernel[4]
     x_od_1 = x_od_0 + (
         d1 * x_ev_0
@@ -68,6 +69,7 @@ def fast_inv_daub4_1d_op(x_coefs, kernel, scale_coeffs, across_cols=False, acros
     # x_coefs: s, d
     s, d = prepare_coeffs_for_inv_1d_op(x_coefs, across_cols=across_cols, across_rows=across_rows, data_format=data_format)
     # o - odd, e - even
+    assert len(kernel) == 5, f'Daubechies-4 kernel must have 5 values, len(kernel)={len(kernel)}, kernel={kernel}'
     c1, c2, d1, d2, k = kernel[0], kernel[1], kernel[2], kernel[3], kernel[4]
     if scale_coeffs:
         x_ev_1 = (1. / k) * s

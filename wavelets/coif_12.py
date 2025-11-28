@@ -40,6 +40,7 @@ def fast_coif12_1d_op(x, kernel, scale_coeffs, across_cols=False, across_rows=Fa
     # Split coeffs
     x_ev_0, x_od_0 = prepare_coeffs_for_1d_op(x, **common_kwargs)
     # o - odd, e - even
+    assert len(kernel) == 13, f'Coiflet-12 kernel must have 13 values, len(kernel)={len(kernel)}, kernel={kernel}'
     c1, c2, c3, c4, c5, c6 = kernel[0], kernel[1], kernel[2], kernel[3], kernel[4], kernel[5]
     d1, d2, d3, d4, d5, d6, k = kernel[6], kernel[7], kernel[8], kernel[9], kernel[10], kernel[11], kernel[12]
     x_od_1 = x_od_0 + (
@@ -91,6 +92,7 @@ def fast_inv_coif12_1d_op(x_coefs, kernel, scale_coeffs, across_cols=False, acro
     # x_coefs: s, d
     s, d = prepare_coeffs_for_inv_1d_op(x_coefs, across_cols=across_cols, across_rows=across_rows, data_format=data_format)
     # o - odd, e - even
+    assert len(kernel) == 13, f'Coiflet-12 kernel must have 13 values, len(kernel)={len(kernel)}, kernel={kernel}'
     c1, c2, c3, c4, c5, c6 = kernel[0], kernel[1], kernel[2], kernel[3], kernel[4], kernel[5]
     d1, d2, d3, d4, d5, d6, k = kernel[6], kernel[7], kernel[8], kernel[9], kernel[10], kernel[11], kernel[12]
     if scale_coeffs:

@@ -35,6 +35,7 @@ def fast_cdf53_1d_op(x, kernel, scale_coeffs, across_cols=False, across_rows=Fal
     # Split coeffs
     x_ev_0, x_od_0 = prepare_coeffs_for_1d_op(x, **common_kwargs)
     # o - odd, e - even
+    assert len(kernel) == 5, f'CDF-5/3 kernel must have 5 values, len(kernel)={len(kernel)}, kernel={kernel}'
     c1, c2, d1, d2, k = kernel[0], kernel[1], kernel[2], kernel[3], kernel[4]
     x_ev_1 = x_ev_0 + (
         c1 * x_od_0 +
@@ -67,6 +68,7 @@ def fast_inv_cdf53_1d_op(x_coefs, kernel, scale_coeffs, across_cols=False, acros
     # x_coefs: s, d
     s, d = prepare_coeffs_for_inv_1d_op(x_coefs, **common_kwargs)
     # o - odd, e - even
+    assert len(kernel) == 5, f'CDF-5/3 kernel must have 5 values, len(kernel)={len(kernel)}, kernel={kernel}'
     c1, c2, d1, d2, k = kernel[0], kernel[1], kernel[2], kernel[3], kernel[4]
     if scale_coeffs:
         x_ev_1 = (1. / k) * s

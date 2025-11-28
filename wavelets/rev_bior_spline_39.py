@@ -42,6 +42,8 @@ def fast_revbiorspline39_1d_op(x, kernel, scale_coeffs, across_cols=False, acros
     # Split coeffs
     x_ev_0, x_od_0 = prepare_coeffs_for_1d_op(x, **common_kwargs)
     # o - odd, e - even
+    assert len(kernel) == 13, \
+        f'Reverse-Bior-Spline-3/9 kernel must have 13 values, len(kernel)={len(kernel)}, kernel={kernel}'
     c1, c2, k = kernel[0], kernel[1], kernel[12]
     d1, d2, d3, d4, d5, d6, d7, d8, d9, d10 =\
         kernel[2], kernel[3], kernel[4], kernel[5], kernel[6], \
@@ -87,6 +89,8 @@ def fast_inv_revbiorspline39_1d_op(x_coefs, kernel, scale_coeffs, across_cols=Fa
     # x_coefs: s, d
     s, d = prepare_coeffs_for_inv_1d_op(x_coefs, across_cols=across_cols, across_rows=across_rows, data_format=data_format)
     # o - odd, e - even
+    assert len(kernel) == 13, \
+        f'Reverse-Bior-Spline-3/9 kernel must have 13 values, len(kernel)={len(kernel)}, kernel={kernel}'
     c1, c2, k = kernel[0], kernel[1], kernel[12]
     d1, d2, d3, d4, d5, d6, d7, d8, d9, d10 =\
         kernel[2], kernel[3], kernel[4], kernel[5], kernel[6], \

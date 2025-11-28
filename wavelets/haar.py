@@ -28,6 +28,7 @@ def fast_haar_1d_op(x, kernel, scale_coeffs, across_cols=False, across_rows=Fals
         'data_format': data_format
     }
     # Split coeffs
+    assert len(kernel) == 3, f'Haar kernel must have 3 values, len(kernel)={len(kernel)}, kernel={kernel}'
     x_ev_0, x_od_0 = prepare_coeffs_for_1d_op(x, **common_kwargs)
     # o - odd, e - even
     c1, d1, k = kernel[0], kernel[1], kernel[2]
@@ -56,6 +57,7 @@ def fast_inv_haar_1d_op(x_coefs, kernel, scale_coeffs, across_cols=False, across
     # x_coefs: s, d
     s, d = prepare_coeffs_for_inv_1d_op(x_coefs, across_cols=across_cols, across_rows=across_rows, data_format=data_format)
     # o - odd, e - even
+    assert len(kernel) == 3, f'Haar kernel must have 3 values, len(kernel)={len(kernel)}, kernel={kernel}'
     c1, d1, k = kernel[0], kernel[1], kernel[2]
     if scale_coeffs:
         x_od_1 = (1. / k) * s
