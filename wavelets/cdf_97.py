@@ -68,10 +68,11 @@ def ref_fast_cdf97_1d_op(x, kernel, scale_coeffs, across_cols=False, across_rows
     # Normalization
     if scale_coeffs:
         x_ev_3 = k * x_ev_2 # s
+        # Note: reference implementation sets this param to False
         if USE_CONSISTENT_1D_NORM:
             x_od_3 = (1. / k) * x_od_2 # d
         else:
-            x_od_3 = (k - 1.) * x_od_2  # d
+            x_od_3 = (k - 1.) * x_od_2 # d
     else:
         x_ev_3, x_od_3 = x_ev_2, x_od_2 # s, d
     # Join coeffs
@@ -96,10 +97,11 @@ def ref_fast_inv_cdf97_1d_op(x_coefs, kernel, scale_coeffs, across_cols=False, a
             kernel[4], kernel[5], kernel[6], kernel[7], kernel[8]
     if scale_coeffs:
         x_ev_2 = (1. / k) * s
+        # Note: reference implementation sets this param to False
         if USE_CONSISTENT_1D_NORM:
-            x_od_2 = k * d  # d
+            x_od_2 = k * d # d
         else:
-            x_od_2 = (1. / (k - 1.)) * d
+            x_od_2 = (1. / (k - 1.)) * d # d
     else:
         x_ev_2, x_od_2 = s, d
     x_ev_1 = x_ev_2 - (
@@ -198,7 +200,7 @@ def fast_cdf97_1d_op(x, kernel, scale_coeffs, across_cols=False, across_rows=Fal
         if USE_CONSISTENT_1D_NORM:
             x_od_3 = (1. / k) * x_od_2 # d
         else:
-            x_od_3 = (k - 1.) * x_od_2  # d
+            x_od_3 = (k - 1.) * x_od_2 # d
     else:
         x_ev_3, x_od_3 = x_ev_2, x_od_2 # s, d
     # Join coeffs
@@ -224,7 +226,6 @@ def fast_inv_cdf97_1d_op(x_coefs, kernel, scale_coeffs, across_cols=False, acros
             kernel[4], kernel[5], kernel[6], kernel[7], kernel[8]
     if scale_coeffs:
         x_ev_2 = (1. / k) * s
-        # x_od_2 = (1. / (k - 1.)) * d
         if USE_CONSISTENT_1D_NORM:
             x_od_2 = k * d # d
         else:
